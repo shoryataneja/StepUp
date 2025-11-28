@@ -1,10 +1,38 @@
-import React from "react";
-import { View, Text } from "react-native";
+import React from 'react';
+import { View, ScrollView, StyleSheet, StatusBar } from 'react-native';
+import { COLORS } from '../constants/theme';
+import Header from '../components/dashboard/Header';
+import TodayCard from '../components/dashboard/TodayCard';
+import RecentWorkouts from '../components/dashboard/RecentWorkouts';
+import BottomNav from '../components/dashboard/BottomNav';
+import WeeklyGoals from '../components/dashboard/WeeklyGoals';
 
-export default function Dashboard() {
-  return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text style={{ fontSize: 24 }}>Dashboard Screen</Text>
-    </View>
-  );
-}
+const Dashboard = () => {
+    return (
+        <View style={styles.container}>
+            <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+            <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+            >
+                <Header />
+                <TodayCard />
+                <WeeklyGoals />
+                <RecentWorkouts />
+            </ScrollView>
+            <BottomNav />
+        </View>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: COLORS.background,
+    },
+    scrollContent: {
+        paddingBottom: 100,
+    },
+});
+
+export default Dashboard;
