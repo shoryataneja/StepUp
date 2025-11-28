@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
 
-// Screens
+
 import Login from "../screens/login";
 import Dashboard from "../screens/dashboard";
 import Workouts from "../screens/workouts";
