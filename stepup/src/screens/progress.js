@@ -3,20 +3,22 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { getStreak, getBestWeek, getWeeklyTypeBreakdown, saveRestDay, getTotalDurationForWeek, getStreakCalendarData } from "../utils/storage";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { COLORS } from "../constants/theme";
 
+// Map local color names to theme colors
 const C = {
-  BG_PRIMARY: "#121212",
-  CARD_BG: "#1E1E1E",
-  TEXT_LIGHT: "#FFFFFFE6",
-  TEXT_MUTED: "#AAAAAA",
-  BORDER: "#333333",
-  PROGRESS_BG: "#444444",
-  PRIMARY_ACCENT: "#6C63FF",
-  ORANGE_ACCENT: "#FF8C00",
-  SUCCESS_ACCENT: "#00C853",
-  REST_DAY_ACCENT: "#F08080",
-  WHITE: "#FFFFFF",
-  BLACK: "#000000",
+  BG_PRIMARY: COLORS.background,
+  CARD_BG: COLORS.cardDark,
+  TEXT_LIGHT: COLORS.textWhite,
+  TEXT_MUTED: COLORS.textGray,
+  BORDER: COLORS.border,
+  PROGRESS_BG: COLORS.secondaryBackground,
+  PRIMARY_ACCENT: COLORS.primaryBlue,
+  ORANGE_ACCENT: COLORS.primaryOrange,
+  SUCCESS_ACCENT: COLORS.success,
+  REST_DAY_ACCENT: "#F08080", // Keeping this as is since it's not in the theme
+  WHITE: COLORS.textWhite,
+  BLACK: COLORS.background,
 };
 
 const Progress = () => {
