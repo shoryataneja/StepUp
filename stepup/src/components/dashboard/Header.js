@@ -1,13 +1,29 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { COLORS, FONTS, SIZES } from '../../constants/theme';
+import { getUser } from '../../utils/storage';
 
 const Header = () => {
+    const [userName, setUserName] = useState('User');
+
+    useFocusEffect(
+        useCallback(() => {
+            const loadUser = async () => {
+                const user = await getUser();
+                if (user && user.name) {
+                    setUserName(user.name);
+                }
+            };
+            loadUser();
+        }, [])
+    );
+
     return (
         <View style={styles.container}>
             <View>
                 <Text style={styles.title}>StepUp</Text>
-                <Text style={styles.subtitle}>Hey, Alex</Text>
+                <Text style={styles.subtitle}>Hey, {userName}</Text>
             </View>
             <View style={styles.avatarContainer}>
                 {/* Placeholder for Avatar */}

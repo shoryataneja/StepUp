@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Modal, ScrollView } from 'react-native';
 import { COLORS, FONTS, SIZES } from '../../constants/theme';
-import { getWorkouts } from '../../utils/storage';
+import { getWorkouts, seedInitialData } from '../../utils/storage';
 import { Ionicons } from '@expo/vector-icons';
 
 const RecentWorkouts = () => {
     const [workouts, setWorkouts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedWorkout, setSelectedWorkout] = useState(null);
+    const [modalVisible, setModalVisible] = useState(false);
 
     useEffect(() => {
         loadWorkouts();
@@ -14,6 +16,7 @@ const RecentWorkouts = () => {
 
     const loadWorkouts = async () => {
         try {
+            await seedInitialData();
             const allWorkouts = await getWorkouts();
 
             // Sort by date (most recent first) and take top 5
@@ -105,7 +108,14 @@ const RecentWorkouts = () => {
                 {workouts.map((workout) => {
                     const iconColors = getIconColors(workout.type);
                     return (
-                        <View key={workout.id} style={styles.card}>
+                        <TouchableOpacity
+                            key={workout.id}
+                            style={styles.card}
+                            onPress={() => {
+                                setSelectedWorkout(workout);
+                                setModalVisible(true);
+                            }}
+                        >
                             <View style={styles.leftContent}>
                                 <View style={[styles.iconContainer, { backgroundColor: iconColors.bg }]}>
                                     <Ionicons
@@ -122,10 +132,61 @@ const RecentWorkouts = () => {
                                 </View>
                             </View>
                             <Text style={styles.time}>{formatDate(workout.date)}</Text>
-                        </View>
+                        </TouchableOpacity>
                     );
                 })}
             </View>
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Workout Details</Text>
+                            <TouchableOpacity onPress={() => setModalVisible(false)}>
+                                <Ionicons name="close" size={24} color={COLORS.textWhite} />
+                            </TouchableOpacity>
+                        </View>
+
+                        {selectedWorkout && (
+                            <ScrollView showsVerticalScrollIndicator={false}>
+                                <View style={styles.detailRow}>
+                                    <Text style={styles.detailLabel}>Type</Text>
+                                    <Text style={styles.detailValue}>{selectedWorkout.type}</Text>
+                                </View>
+                                <View style={styles.detailRow}>
+                                    <Text style={styles.detailLabel}>Date</Text>
+                                    <Text style={styles.detailValue}>{formatDate(selectedWorkout.date)}</Text>
+                                </View>
+                                <View style={styles.detailRow}>
+                                    <Text style={styles.detailLabel}>Duration</Text>
+                                    <Text style={styles.detailValue}>{selectedWorkout.duration} min</Text>
+                                </View>
+                                <View style={styles.detailRow}>
+                                    <Text style={styles.detailLabel}>Calories</Text>
+                                    <Text style={styles.detailValue}>{selectedWorkout.calories || 0} kcal</Text>
+                                </View>
+                                {selectedWorkout.steps && (
+                                    <View style={styles.detailRow}>
+                                        <Text style={styles.detailLabel}>Steps</Text>
+                                        <Text style={styles.detailValue}>{selectedWorkout.steps}</Text>
+                                    </View>
+                                )}
+                                {selectedWorkout.notes && (
+                                    <View style={styles.notesContainer}>
+                                        <Text style={styles.detailLabel}>Notes</Text>
+                                        <Text style={styles.notesText}>{selectedWorkout.notes}</Text>
+                                    </View>
+                                )}
+                            </ScrollView>
+                        )}
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 };
@@ -199,6 +260,56 @@ const styles = StyleSheet.create({
         color: COLORS.textGray,
         fontSize: 14,
         textAlign: 'center',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        backgroundColor: COLORS.cardDark,
+        borderRadius: 20,
+        width: '100%',
+        maxHeight: '80%',
+        padding: 20,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    modalTitle: {
+        ...FONTS.h2,
+        color: COLORS.textWhite,
+    },
+    detailRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    detailLabel: {
+        color: COLORS.textGray,
+        fontSize: 16,
+    },
+    detailValue: {
+        color: COLORS.textWhite,
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    notesContainer: {
+        marginTop: 16,
+    },
+    notesText: {
+        color: COLORS.textWhite,
+        fontSize: 16,
+        marginTop: 8,
+        lineHeight: 24,
     },
 });
 

@@ -17,7 +17,8 @@ import {
   Feather,
   MaterialIcons,
 } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { getUser } from "../utils/storage";
 
 // Define a color palette for both light and dark themes
 const COLORS = {
@@ -50,12 +51,28 @@ export default function ProfileScreen() {
   const [darkMode, setDarkMode] = useState(true); // Set to true for default dark mode
 
   const [person, setPerson] = useState({
-    name: "Rahul",
-    email: "rahul@nst.com",
+    name: "User",
+    email: "user@example.com",
     age: "32",
     height: "170",
     weight: "75",
   });
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadUser = async () => {
+        const user = await getUser();
+        if (user) {
+          setPerson(prev => ({
+            ...prev,
+            name: user.name || prev.name,
+            email: user.email || prev.email,
+          }));
+        }
+      };
+      loadUser();
+    }, [])
+  );
 
   const [editFields, setEditFields] = useState(person);
 
