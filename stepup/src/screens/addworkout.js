@@ -56,8 +56,10 @@ export default function AddWorkout() {
       setDate(new Date(editingWorkout.date));
       if (editingWorkout.calories) setCalories(editingWorkout.calories.toString());
       if (editingWorkout.intensity) setIntensity(editingWorkout.intensity);
+    } else if (route.params?.initialDate) {
+      setDate(new Date(route.params.initialDate));
     }
-  }, [editingWorkout]);
+  }, [editingWorkout, route.params]);
 
   const loadTypes = async () => {
     try {

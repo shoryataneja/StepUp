@@ -7,6 +7,8 @@ export const COLORS = {
     textGray: '#8E8E93',
     success: '#30D158',
     overlay: 'rgba(0,0,0,0.5)',
+    cardBorder: '#2C2C2E',
+    secondaryBackground: '#2C2C2E',
 };
 
 export const SIZES = {

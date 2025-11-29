@@ -4,6 +4,8 @@ export const STORAGE_KEYS = {
     WORKOUTS: '@stepup_workouts',
     WEEKLY_GOALS: '@stepup_weekly_goals',
     CUSTOM_TYPES: '@stepup_custom_types',
+    USER: '@stepup_user',
+    REST_DAYS: '@stepup_rest_days',
 };
 
 
@@ -201,4 +203,192 @@ export const getWeeklyStats = async () => {
         ],
         fullStats: stats
     };
+};
+
+export const saveUser = async (user) => {
+    try {
+        await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+        return true;
+    } catch (e) {
+        console.error("Error saving user:", e);
+        return false;
+    }
+};
+
+export const getUser = async () => {
+    try {
+        const jsonValue = await AsyncStorage.getItem(STORAGE_KEYS.USER);
+        return jsonValue != null ? JSON.parse(jsonValue) : null;
+    } catch (e) {
+        console.error("Error reading user:", e);
+        return null;
+    }
+};
+
+export const saveRestDay = async (date) => {
+    try {
+        const existingRestDays = await getRestDays();
+        if (!existingRestDays.includes(date)) {
+            const newRestDays = [...existingRestDays, date];
+            await AsyncStorage.setItem(STORAGE_KEYS.REST_DAYS, JSON.stringify(newRestDays));
+            return newRestDays;
+        }
+        return existingRestDays;
+    } catch (e) {
+        console.error("Error saving rest day:", e);
+        return [];
+    }
+};
+
+export const getRestDays = async () => {
+    try {
+        const jsonValue = await AsyncStorage.getItem(STORAGE_KEYS.REST_DAYS);
+        return jsonValue != null ? JSON.parse(jsonValue) : [];
+    } catch (e) {
+        console.error("Error reading rest days:", e);
+        return [];
+    }
+};
+
+export const getStreak = async () => {
+    const workouts = await getWorkouts();
+    const restDays = await getRestDays();
+
+    // Combine workout dates and rest days
+    const activityDates = new Set([
+        ...workouts.map(w => w.date),
+        ...restDays
+    ]);
+
+    const sortedDates = Array.from(activityDates).sort((a, b) => new Date(b) - new Date(a));
+
+    if (sortedDates.length === 0) return 0;
+
+    let streak = 0;
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+    // Check if streak is active (today or yesterday present)
+    if (!activityDates.has(today) && !activityDates.has(yesterday)) {
+        return 0;
+    }
+
+    // Iterate backwards from today/yesterday
+    let checkDate = new Date();
+    if (!activityDates.has(today)) {
+        checkDate.setDate(checkDate.getDate() - 1); // Start checking from yesterday
+    }
+
+    while (true) {
+        const dateStr = checkDate.toISOString().split('T')[0];
+        if (activityDates.has(dateStr)) {
+            streak++;
+            checkDate.setDate(checkDate.getDate() - 1);
+        } else {
+            break;
+        }
+    }
+
+    return streak;
+};
+
+export const getBestWeek = async () => {
+    const workouts = await getWorkouts();
+    if (workouts.length === 0) return { weekStart: null, totalDuration: 0 };
+
+    // Group by week
+    const weeks = {};
+    workouts.forEach(w => {
+        const date = new Date(w.date);
+        const day = date.getDay();
+        const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is sunday
+        const monday = new Date(date.setDate(diff)).toISOString().split('T')[0];
+
+        if (!weeks[monday]) weeks[monday] = 0;
+        weeks[monday] += parseInt(w.duration) || 0;
+    });
+
+    let bestWeek = { weekStart: null, totalDuration: 0 };
+    for (const [weekStart, duration] of Object.entries(weeks)) {
+        if (duration > bestWeek.totalDuration) {
+            bestWeek = { weekStart, totalDuration: duration };
+        }
+    }
+    return bestWeek;
+};
+
+export const getWeeklyTypeBreakdown = async () => {
+    const workouts = await getWorkouts();
+    const today = new Date();
+    const day = today.getDay();
+    const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Monday
+    const monday = new Date(today.setDate(diff)).toISOString().split('T')[0];
+
+    const thisWeekWorkouts = workouts.filter(w => w.date >= monday);
+
+    const breakdown = {};
+    thisWeekWorkouts.forEach(w => {
+        if (!breakdown[w.type]) breakdown[w.type] = 0;
+        breakdown[w.type] += parseInt(w.duration) || 0;
+    });
+
+    return Object.entries(breakdown).map(([type, duration]) => ({ type, duration }));
+};
+
+export const getTotalDurationForWeek = async (weekOffset = 0) => {
+    const workouts = await getWorkouts();
+    const today = new Date();
+    const day = today.getDay();
+    const diff = today.getDate() - day + (day === 0 ? -6 : 1) - (weekOffset * 7); // Monday of the target week
+
+    const mondayDate = new Date(today);
+    mondayDate.setDate(diff);
+    const mondayStr = mondayDate.toISOString().split('T')[0];
+
+    const nextMondayDate = new Date(mondayDate);
+    nextMondayDate.setDate(mondayDate.getDate() + 7);
+    const nextMondayStr = nextMondayDate.toISOString().split('T')[0];
+
+    const weekWorkouts = workouts.filter(w => w.date >= mondayStr && w.date < nextMondayStr);
+
+    return weekWorkouts.reduce((sum, w) => sum + (parseInt(w.duration) || 0), 0);
+};
+
+export const getStreakCalendarData = async () => {
+    const workouts = await getWorkouts();
+    const restDays = await getRestDays();
+    const today = new Date();
+    const day = today.getDay(); // 0 is Sunday
+    const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Monday
+
+    const calendarData = [];
+    const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(today);
+        d.setDate(diff + i);
+        const dateStr = d.toISOString().split('T')[0];
+
+        let status = 'none';
+        const isFuture = d > new Date();
+        const isToday = dateStr === today.toISOString().split('T')[0];
+
+        if (isFuture && !isToday) {
+            status = 'future';
+        } else {
+            const hasWorkout = workouts.some(w => w.date === dateStr);
+            const isRest = restDays.includes(dateStr);
+
+            if (hasWorkout) status = 'completed';
+            else if (isRest) status = 'rest';
+            else if (isToday) status = 'today';
+        }
+
+        calendarData.push({
+            day: days[i],
+            date: dateStr,
+            status
+        });
+    }
+    return calendarData;
 };
