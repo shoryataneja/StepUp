@@ -1,9 +1,23 @@
 import React, { useState, useCallback } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { COLORS, FONTS, SIZES } from "../constants/theme";
 import { getStreak, getBestWeek, getWeeklyTypeBreakdown, saveRestDay, getTotalDurationForWeek, getStreakCalendarData } from "../utils/storage";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+
+const C = {
+  BG_PRIMARY: "#121212",
+  CARD_BG: "#1E1E1E",
+  TEXT_LIGHT: "#FFFFFFE6",
+  TEXT_MUTED: "#AAAAAA",
+  BORDER: "#333333",
+  PROGRESS_BG: "#444444",
+  PRIMARY_ACCENT: "#6C63FF",
+  ORANGE_ACCENT: "#FF8C00",
+  SUCCESS_ACCENT: "#00C853",
+  REST_DAY_ACCENT: "#F08080",
+  WHITE: "#FFFFFF",
+  BLACK: "#000000",
+};
 
 const Progress = () => {
   const navigation = useNavigation();
@@ -83,7 +97,7 @@ const Progress = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primaryBlue} />
+        <ActivityIndicator size="large" color={C.PRIMARY_ACCENT} />
       </View>
     );
   }
@@ -92,7 +106,7 @@ const Progress = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color="#000" />
+          <Ionicons name="chevron-back" size={24} color={C.TEXT_LIGHT} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Progress Summary</Text>
         <View style={{ width: 24 }} />
@@ -101,7 +115,7 @@ const Progress = () => {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Ionicons name="flame" size={20} color={COLORS.primaryOrange} />
+            <Ionicons name="flame" size={20} color={C.ORANGE_ACCENT} />
             <Text style={styles.cardLabel}>Current Streak</Text>
           </View>
           <Text style={styles.largeValue}>{streak} Days</Text>
@@ -109,7 +123,7 @@ const Progress = () => {
 
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Ionicons name="trophy-outline" size={20} color={COLORS.primaryBlue} />
+            <Ionicons name="trophy-outline" size={20} color={C.PRIMARY_ACCENT} />
             <Text style={styles.cardLabel}>Best Week</Text>
           </View>
           <Text style={styles.largeValue}>{formatDuration(bestWeek.totalDuration)}</Text>
@@ -121,7 +135,7 @@ const Progress = () => {
           <Text style={styles.subLabel}>Total Workout Time</Text>
           <Text style={styles.mediumValue}>{formatDuration(totalDuration)}</Text>
           <Text style={styles.comparisonText}>
-            vs. Last Week <Text style={{ color: COLORS.success }}>{getPercentageChange()}</Text>
+            vs. Last Week <Text style={{ color: C.SUCCESS_ACCENT }}>{getPercentageChange()}</Text>
           </Text>
 
           <View style={styles.breakdownContainer}>
@@ -161,9 +175,9 @@ const Progress = () => {
                   onPress={() => handleCalendarPress(day)}
                   disabled={day.status === 'future'}
                 >
-                  {day.status === 'completed' && <Ionicons name="checkmark" size={16} color="#fff" />}
-                  {day.status === 'rest' && <MaterialCommunityIcons name="meditation" size={16} color="#fff" />}
-                  {day.status === 'today' && <Ionicons name="add" size={16} color="#000" />}
+                  {day.status === 'completed' && <Ionicons name="checkmark" size={16} color={C.WHITE} />}
+                  {day.status === 'rest' && <MaterialCommunityIcons name="meditation" size={16} color={C.WHITE} />}
+                  {day.status === 'today' && <Ionicons name="add" size={16} color={C.TEXT_LIGHT} />}
                 </TouchableOpacity>
               </View>
             ))}
@@ -178,13 +192,13 @@ const Progress = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: C.BG_PRIMARY,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: "#FFFFFF",
+    backgroundColor: C.BG_PRIMARY,
   },
   header: {
     flexDirection: 'row',
@@ -193,24 +207,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 20,
-    backgroundColor: "#FFFFFF"
+    backgroundColor: C.BG_PRIMARY
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: "#000",
+    color: C.TEXT_LIGHT,
   },
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
   card: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: C.CARD_BG,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#E5E5E5",
+    borderColor: C.BORDER,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -219,35 +233,35 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   cardLabel: {
-    color: "#555",
+    color: C.TEXT_MUTED,
     fontSize: 14,
     fontWeight: '500',
   },
   largeValue: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: "#000",
+    color: C.TEXT_LIGHT,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: "#000",
+    color: C.TEXT_LIGHT,
     marginTop: 16,
     marginBottom: 12,
   },
   subLabel: {
-    color: "#555",
+    color: C.TEXT_MUTED,
     fontSize: 14,
     marginBottom: 4,
   },
   mediumValue: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: "#000",
+    color: C.TEXT_LIGHT,
     marginBottom: 4,
   },
   comparisonText: {
-    color: "#555",
+    color: C.TEXT_MUTED,
     fontSize: 14,
     marginBottom: 24,
   },
@@ -260,20 +274,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   breakdownLabel: {
-    color: "#555",
+    color: C.TEXT_MUTED,
     fontSize: 14,
     width: 70,
   },
   progressBarContainer: {
     flex: 1,
     height: 8,
-    backgroundColor: "#DDD",
+    backgroundColor: C.PROGRESS_BG,
     borderRadius: 4,
     marginLeft: 12,
   },
   progressBar: {
     height: '100%',
-    backgroundColor: COLORS.primaryBlue,
+    backgroundColor: C.PRIMARY_ACCENT,
     borderRadius: 4,
   },
   calendarRow: {
@@ -286,7 +300,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   dayLabel: {
-    color: "#555",
+    color: C.TEXT_MUTED,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -296,24 +310,24 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: "#EEE",
+    backgroundColor: C.PROGRESS_BG,
   },
   completedIndicator: {
-    backgroundColor: COLORS.success,
+    backgroundColor: C.SUCCESS_ACCENT,
   },
   restIndicator: {
-    backgroundColor: "#FFC0CB",
+    backgroundColor: C.REST_DAY_ACCENT,
   },
   todayIndicator: {
-    backgroundColor: "#FFF",
+    backgroundColor: C.CARD_BG,
     borderWidth: 1,
-    borderColor: COLORS.primaryBlue,
+    borderColor: C.PRIMARY_ACCENT,
   },
   futureIndicator: {
     opacity: 0.3,
   },
   helperText: {
-    color: "#555",
+    color: C.TEXT_MUTED,
     fontSize: 12,
     textAlign: 'center',
   },

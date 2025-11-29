@@ -7,25 +7,6 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage"; 
 import { getUser } from "../utils/storage"; 
 
-const THEME_KEY = '@theme_preference';
-const getThemePreference = async () => {
-    try {
-        const value = await AsyncStorage.getItem(THEME_KEY);
-        return value === 'true'; 
-    } catch (e) {
-        console.error("Failed to load theme preference", e);
-        return false;
-    }
-};
-
-const saveThemePreference = async (isDark) => {
-    try {
-        await AsyncStorage.setItem(THEME_KEY, String(isDark));
-    } catch (e) {
-        console.error("Failed to save theme preference", e);
-    }
-};
-
 const COLORS = {primary: "#6C63FF",lightBackground: "#fff",
   darkBackground: "#121212",lightCard: "#F7F7F8",darkCard: "#1E1E1E",lightText: "#000",
   darkText: "#FFFFFFE6", lightSubText: "#666",darkSubText: "#AAAAAA", lightBorder: "#ddd",
@@ -39,7 +20,7 @@ export default function ProfileScreen() {
   const [modalType, setModalType] = useState("");
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [metricUnits, setMetricUnits] = useState(true);
-  const [darkMode, setDarkMode] = useState(false); 
+  const [darkMode, setDarkMode] = useState(true); 
 
   const [person, setPerson] = useState({name: "User",email: "user@example.com",
     age: "32",height: "170",weight: "75"});
@@ -54,8 +35,6 @@ export default function ProfileScreen() {
             email: user.email || prev.email,
           }));
         }
-        const isDark = await getThemePreference();
-        setDarkMode(isDark);
       };
       loadSettings();
     }, [])
@@ -118,11 +97,7 @@ export default function ProfileScreen() {
       "Your account has been permanently deleted and cannot be recovered."
     );
   };
-  const toggleDarkMode = (value) => {
-    setDarkMode(value);
-    saveThemePreference(value);
-  };
-
+  
   const SectionCard = ({ title, items }) => (
     <View style={[styles.cardWrapper, { backgroundColor: currentColors.card }]}>
       <Text style={[styles.sectionTitle, { color: currentColors.subText }]}>
@@ -317,23 +292,7 @@ export default function ProfileScreen() {
             </View>
           </>
         );
-
-      case "appearance":
-        return (
-          <>
-            <Text style={[styles.modalTitle, { color: currentColors.text }]}>Appearance</Text>
-            <View style={styles.optionRow}>
-              <Text style={[styles.optionLabel, { color: currentColors.text }]}>Dark Mode</Text>
-              <Switch
-                value={darkMode}
-                onValueChange={toggleDarkMode}
-                trackColor={{ false: currentColors.subText, true: COLORS.primary }}
-                thumbColor={COLORS.lightBackground}
-              />
-            </View>
-          </>
-        );
-
+      
       case "logout":
         return (
           <>
@@ -428,11 +387,6 @@ export default function ProfileScreen() {
               label: "Units",
               icon: "settings",
               onPress: () => openModal("units"),
-            },
-            {
-              label: "Appearance",
-              icon: "moon",
-              onPress: () => openModal("appearance"),
             },
           ]}
         />
